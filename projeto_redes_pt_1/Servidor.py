@@ -7,22 +7,23 @@ import os
 class Servidor:
     """ Servidor possui dois sockets tcp e udp ouvindo a mesma porta
         Sua funcao principal eh echoar a mensagem recebida de volta para o cliente
-
     """
     def __init__(self):
         # informacoes basicas para conexao
+        
+        # informacoes para conexao tcp e udp apenas
         self._hostServidor = ""
         self._portaServidor = 20200
         self._conexao_tcp_udp = (self._hostServidor, self._portaServidor)
         
+        # informacoes basicas para socket http
         self._portaServidorHttp = 8080
         self._conexao_http = (self._hostServidor, self._portaServidorHttp)
 
 
     def MensagemTCP(self):
-        """ 
+        """
             Aguarda mensagens tcp e a retorna junto ao tipo de conexao usada (tcp no caso)
-
         """
 
         # criacao do socket tcp
@@ -35,11 +36,13 @@ class Servidor:
         while True:
             try:
                 conexao_cliente, endereco_cliente = socket_tcp.accept()
-                msg_estado = "Conectado por " + str(endereco_cliente)
+                msg_estado = "Conexao TCP por " + str(endereco_cliente)
+                
                 print(msg_estado)
 
                 requisicao_cliente = conexao_cliente.recv(1024) 
-                # conexao_cliente.type retorna SockKind.STREAM nesse caso (TCP)
+
+                # Retorna requisicao do cliente junto ao tipo de socket sendo utilizado
                 mensagem_retorno = "Mensagem >>> " + requisicao_cliente.decode("UTF-8") + " | via: " + str(conexao_cliente.type)
                 conexao_cliente.send(bytes(mensagem_retorno, "UTF-8"))
                 conexao_cliente.close()
@@ -50,7 +53,7 @@ class Servidor:
 
     def MensagemUDP(self):
         """ 
-            Aguarda mensagens udp e a retorna junto ao tipo de conexao usada (udp no caso)
+            Aguarda mensagens udp e a retorna junto ao tipo de conexao usada (udp)
             
         """
         socket_udp = socket(AF_INET, SOCK_DGRAM)
@@ -62,7 +65,8 @@ class Servidor:
             try:
                 mensagem_cliente, endereco_cliente = socket_udp.recvfrom(2048)
                 print("Requisição UDP de " + str(endereco_cliente))
-                # conexao_cliente.type retorna SockKind.DGRAM nesse caso (UDP)
+
+                # Retorna requisicao do cliente junto ao tipo de socket sendo utilizado
                 mensagem_modificada = "Mensagem >>> " + mensagem_cliente.decode("UTF-8") + " | via: " + str(socket_udp.type)
                 socket_udp.sendto(bytes(mensagem_modificada, "UTF-8"), endereco_cliente)
             
@@ -87,21 +91,18 @@ class Servidor:
         while True:
             try:
                 conexao_cliente, endereco_cliente = socket_http.accept()
-                msg_estado = "Conectado por " + str(endereco_cliente)
+                msg_estado = "Conexao HTTP por " + str(endereco_cliente)
                 print (msg_estado)
                 requisicao_cliente = conexao_cliente.recv(1024).decode("UTF-8")
                 
-                # separar informações
+                # separar informações do cabecalho enviado
                 lista_de_string = requisicao_cliente.split(" ")
-
-                
-                #cabecalho_requisitado = lista_de_string[0]
                 arquivo_requisitado = lista_de_string[1]
                 
-
-                # Recupera arquivo do servidor
+                # caso a requsicao seja pela pasta raiz
                 if arquivo_requisitado == "/": arquivo_requisitado = "/index.html"
                 
+                # Recupera arquivo do servidor
                 try:
                     arquivo = open(diretorio_servidor + arquivo_requisitado, "r")
                     resposta = arquivo.read()
@@ -121,8 +122,7 @@ class Servidor:
                     cabecalho += "Content=Type: " + str(mime_type) + "\r\n\r\n"
                 
                 except Exception as msg_erro:
-                    print (msg_erro)
-                    
+
                     cabecalho = "HTTP/1.1 404 Not Found\r\n\r\n"
                     resposta = """<html>
                           <body>
@@ -154,6 +154,6 @@ if __name__ == '__main__':
         Thread(target=objServidor.MensagemUDP).start()
         Thread(target=objServidor.MensagemHTTP).start()
    
-    except Exception as msg:
-        print(msg)
+    except Exception as msg_erro:
+        print(msg_erro)
         

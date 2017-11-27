@@ -5,11 +5,12 @@ class HttpCliente:
     
     def __init__(self):
         self._hostServidor = "localhost"
-        self._portaServidor = 8080   # porta igual a do tcp para testes
+        self._portaServidor = 8080
         self._conexao = (self._hostServidor, self._portaServidor)
         try:
             self._socket_cliente = socket(AF_INET, SOCK_STREAM)
             self._socket_cliente.connect(self._conexao)
+        
         except Exception as msg_erro:
             print(msg_erro)
     

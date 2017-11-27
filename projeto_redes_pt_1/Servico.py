@@ -3,18 +3,17 @@ from TcpCliente import TcpCliente
 from UdpCliente import UdpCliente
 from HttpCliente import HttpCliente
 
-
 """
-    Para rodar a aplicacao a classe Servidor.py precisa estar rodoando
-    Funcao da aplicacao: 
-      Ler de um arquivo de texto do metodo de transmissao que vai ser usado - (tcp, udp, http)
+    Para rodar a aplicacao a classe Servidor.py precisa estar rodando
+    Funcao da aplicacao:
+      O usuario escolhe o metodo de transmissao que vai ser usado - (tcp, udp, http)
       Inicia a classe cliente do protocolo escolhido
-      Envia a mensagem para o servidor 
+      Envia a mensagem para o servidor
       Recebe e imprime a resposta
 """
 
 def main():
-    
+
     while True:
       os.system('cls' if os.name == 'nt' else 'clear')
       protocolo = lerProtocolo()
@@ -29,11 +28,14 @@ def main():
 def lerProtocolo():
     """
         recebe a entrada do usuario de qual protocolo sera usado
+        retorna uma string com protocolo escolhido
     """
+
     estado = ""
+
     while True:
         escolha = input("Qual protocolo usar?\n1. TCP\n2. UDP\n3. HTTP\n\n" + estado +"> ")
-    
+
         if escolha == "1":
             protocolo = "tcp"
             break
@@ -51,6 +53,7 @@ def lerProtocolo():
             os.system('cls' if os.name == 'nt' else 'clear')
 
     return protocolo  
+
 
 def iniciaCliente(protocolo):
     """
@@ -71,9 +74,9 @@ def iniciaCliente(protocolo):
         print(retorno)
 
     elif protocolo == "http":
-    
+
         cliente = HttpCliente()
-        url = input("digite a url do servidor: (Ex: http://localhost:20200/index.html)\n")        
+        url = input("digite a url do servidor: Ex: http://localhost:20200/index.html\n")        
         retorno = cliente.receber_pagina(url)
         print(retorno)
 
