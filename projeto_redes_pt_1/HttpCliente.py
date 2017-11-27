@@ -5,7 +5,7 @@ class HttpCliente:
     
     def __init__(self):
         self._hostServidor = "localhost"
-        self._portaServidor = 20200   # porta igual a do tcp para testes
+        self._portaServidor = 8080   # porta igual a do tcp para testes
         self._conexao = (self._hostServidor, self._portaServidor)
         try:
             self._socket_cliente = socket(AF_INET, SOCK_STREAM)

@@ -1,3 +1,4 @@
+import os
 from TcpCliente import TcpCliente
 from UdpCliente import UdpCliente
 from HttpCliente import HttpCliente
@@ -13,43 +14,66 @@ from HttpCliente import HttpCliente
 """
 
 def main():
+    
+    while True:
+      os.system('cls' if os.name == 'nt' else 'clear')
+      protocolo = lerProtocolo()
+      print("\nSERVICO ECHO: Protocolo " + protocolo)
+      iniciaCliente(protocolo)
 
-    protocolo = lerProtocolo()
-    iniciaCliente(protocolo)
+      escolha = input("\nDeseja enviar outra mensagem? (S/N)\n")
+      if escolha.lower() == "n":
+          break
+
 
 def lerProtocolo():
     """
-        Abre o arquivo e le a primeira linha, tratando a string e retornando-a
+        recebe a entrada do usuario de qual protocolo sera usado
     """
-    caminho_arquivo = "metodo_envio.txt"
-    arquivo = open(caminho_arquivo, "r")
-    protocolo_envio = arquivo.readline().strip().lower()
-    print("protocolo escolhido: " + protocolo_envio)
-    return  protocolo_envio
+    estado = ""
+    while True:
+        escolha = input("Qual protocolo usar?\n1. TCP\n2. UDP\n3. HTTP\n\n" + estado +"> ")
+    
+        if escolha == "1":
+            protocolo = "tcp"
+            break
+
+        elif escolha == "2":
+            protocolo = "udp"
+            break
+
+        elif escolha == "3":
+            protocolo = "http"
+            break
+
+        else:
+            estado = "protocolo nao suportado escolha novamente\n\n"
+            os.system('cls' if os.name == 'nt' else 'clear')
+
+    return protocolo  
 
 def iniciaCliente(protocolo):
     """
         A depender do protocolo escolhido, inicia o cliente correspondente
     """
+
     if protocolo == "tcp":
         
         cliente = TcpCliente()
-        mensagem = input("Digite aqui >>> ")
+        mensagem = input("Digite uma mensagem >>> ")
         retorno = cliente.enviar_mensagem(mensagem)
         print(retorno)
 
     elif protocolo == "udp":
         cliente = UdpCliente()
-        mensagem = input("Digite aqui >>> ")
+        mensagem = input("Digite uma mensagem >>> ")
         retorno = cliente.enviar_mensagem(mensagem)
         print(retorno)
 
     elif protocolo == "http":
-        """
-            AQUI ESTA O PROBLEMA DO HTTP 
-        """
+    
         cliente = HttpCliente()
-        url = input("digite a url: (Ex: http://localhost:20200/index.html)\n")        
+        url = input("digite a url do servidor: (Ex: http://localhost:20200/index.html)\n")        
         retorno = cliente.receber_pagina(url)
         print(retorno)
 
