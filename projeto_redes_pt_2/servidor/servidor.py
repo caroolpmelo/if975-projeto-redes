@@ -1,25 +1,27 @@
-# servidor.py 
-from socket import *                                        
+#!/usr/bin/env python
+
+# servidor.py
+from socket import *
 import time
 
 # cria um objeto socket
-serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
+serverSocket = socket(AF_INET, SOCK_STREAM)
 
 # pega nome do host local
-host = socket.gethostname()                           
+host = gethostname()
 
-port = 9999                                           
+port = 9999
 
 # liga host à porta
-serversocket.bind((host, port))                                  
+serverSocket.bind((host, port))
 
 print('Servidor aguardando conexão...')
 
 # até 25 requests na fila
-serversocket.listen(25)                                           
+serverSocket.listen(25)
 
 # estabelece conexão
-clientsocket,addr = serversocket.accept()      
+clientsocket,addr = serverSocket.accept()
 
 print("O servidor conectou-se a %s" % str(addr))
 #currentTime = time.ctime(time.time()) + "\r\n"
