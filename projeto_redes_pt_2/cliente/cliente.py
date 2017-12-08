@@ -11,7 +11,7 @@ import time, os, json
 
 # print("O tempo que o servidor demorou foi %s" % tm.decode('ascii'))
 
-def fazerConexao():
+def iniciaConexao():
     try:
     	# cria um objeto socket
         clientSocket = socket(AF_INET, SOCK_STREAM)
@@ -22,113 +22,110 @@ def fazerConexao():
         clientSocket.connect((clientHost, clientPort))
         return clientSocket
     except:
-        input("Conexão falhou. O servidor está rodando corretamente?")
+        input("Conexão falhou")
 
-def CabecalhoUI(nomeMenu, usuarioLogado = ""):
-    print(nomeMenu.upper())
-    if usuarioLogado != "":
-        print("Usuário %s" %usuarioLogado)
+def menuOp(clientSocket):
+    infos("Menu de Opções")
+    print("\nQual opção você deseja? \n" +
+          "1 - Acessar Conta \n" +
+          "2 - Criar uma Conta \n" +
+          "3 - Sobre a aplicação")
+
+    opSelecionada = pegaInteiro("\nDigite o número respectivo à sua escolha:", 1, 3)
+
+    if opSelecionada == 1:
+        chamaServidor("AcessarConta()", clientSocket)
+        AcessarConta(clientSocket)
+
+    elif opSelecionada == 2:
+        chamaServidor("criarConta()", clientSocket)
+        criarConta(clientSocket)
+
     else:
-        print("Usuário desconectou")
-    print("Conectado")
+        about(clientSocket)
 
-def pegaString(textoComando):
+def menuOpLogado(nomeCliente, clientSocket):
+    infos("Menu Principal", nomeCliente)
+
+    print("\nAutenticação realizada com sucesso!\n" +
+          "O que você deseja? \n" +
+          "1) Meu armazenamento\n" +
+          "2) Arquivos compartilhados com meu usuário")
+
+    opSelecionada = pegaInteiro("\nDigite sua opção", 1, 2)
+
+    if opSelecionada == 1:
+        chamaServidor("meusArquivos()", clientSocket)
+        meusArquivos(nomeCliente, clientSocket)
+
+    else:
+        chamaServidor("compartilhadosComUsuario()", clientSocket)
+        compartilhadosComUsuario(nomeCliente, clientSocket)
+
+def pegaString(inputComando):
     while True:
-        stringUsuario = input("\n" + textoComando + "\n")
+        stringUser = input("\n" + inputComando + "\n")
 
-        if (stringUsuario != ""): break
+        if (stringUser != ""): break
 
-    return stringUsuario
+    return stringUser
 
-def pegaStringOp(textoComando):
+def pegaStringOp(inputComando):
     while True:
-        escolhaUsuario = input(textoComando + "\n")
-        if escolhaUsuario == "S" or escolhaUsuario == "N": break
+        opUser = input(inputComando + "\n")
+        if opUser == "S" or opUser == "N": break
 
-    return escolhaUsuario
+    return opUser
 
-def LerInteiro(textoComando, valorMinimo, valorMaximo):
+def pegaInteiro(inputComando, minValue, maxValue):
     while True:
         try:
-            entradaUsuario = int(input(textoComando + "\n"))
+            inputUser = int(input(inputComando + "\n"))
 
-            while (valorMinimo > entradaUsuario) or (entradaUsuario > valorMaximo):
-                print("\n\nNúmero digitado deve estar entre %d e %d. ◄ ◄ ◄\n" %(valorMinimo, valorMaximo))
-                entradaUsuario = int(input(textoComando + "\n"))
+            while (minValue > inputUser) or (inputUser > maxValue):
+                print("\nNúmero digitado é incorreto!")
+                inputUser = int(input(inputComando + "\n"))
 
             break
 
         except ValueError:
-            print("\n\nErro com entrada!\n")
+            print("\nErro com entrada!\n")
 
-    return entradaUsuario
+    return inputUser
 
-##################################################
-clientSocket = fazerConexao()
-
-def ChamarServidor(solicitacao, clientSocket):
-    clientSocket.send(solicitacao.encode("utf-8"))
-
-def menuOp(clientSocket):
-    CabecalhoUI("Menu Inicial")
-
-    print("\n\n► Olá! Para começar, escolha uma opção:\n\n" +
-          "1) Acessar Conta\n" +
-          "2) Criar uma Conta\n" +
-          "3) Sobre o CIn Drive")
-
-    opcaoEscolhida = LerInteiro("\nDigite o número respectivo à sua escolha:", 1, 3)
-
-    if opcaoEscolhida == 1:
-        ChamarServidor("AcessarConta()", clientSocket)
-        AcessarConta(clientSocket)
-
-    elif opcaoEscolhida == 2:
-        ChamarServidor("CriarConta()", clientSocket)
-        CriarConta(clientSocket)
-
+def infos(nomMenu, userEntrou = ""):
+    print(nomMenu.upper())
+    if userEntrou != "":
+        print("Usuário %s" %userEntrou)
     else:
-        Sobre(clientSocket)
+        print("Desconectou")
+    print("Conectado")
 
-def MenuPrincipal(nomeCliente, clientSocket):
-    CabecalhoUI("Menu Principal", nomeCliente)
+def about(clientSocket):
+    infos("Sobre a aplicação: ")
 
-    print("\n\nAutenticação realizada com sucesso!\n\n" +
-          "O que você deseja? \n\n" +
-          "1) Meu armazenamento\n" +
-          "2) Arquivos compartilhados com meu usuário")
-
-    opcaoEscolhida = LerInteiro("\nDigite sua opção", 1, 2)
-
-    if opcaoEscolhida == 1:
-        ChamarServidor("meusArquivos()", clientSocket)
-        meusArquivos(nomeCliente, clientSocket)
-
-    else:
-        ChamarServidor("compartilhadosComUsuario()", clientSocket)
-        compartilhadosComUsuario(nomeCliente, clientSocket)
-
-def Sobre(clientSocket):
-    CabecalhoUI("Sobre")
-
-    print("Projeto da cadeira Redes de Computadores - CIn UFPE. O objetivo é implementar um sistema que " +
-          "sirva como um armazenador de arquivos, com download e upload, e autenticação de usuário.\n\n" +
-          "Aluna:\n\n" +
-          "  Carolina Maria de Paiva Melo\n\n")
-    input("Aperte Enter para voltar!")
+    print("Projeto da cadeira Redes de Computadores - CIn UFPE, com objetivo de implementar um sistema " +
+          "de armazenamento e compartilhamento de arquivos." +
+          "\nAluna:\n" +
+          "  Carolina Maria de Paiva Melo\n")
     menuOp(clientSocket)
 
-def DownloadArquivo(nomeCliente, nomeArquivoEscolhido, clientSocket):
-    CabecalhoUI("Download de Arquivo", nomeCliente)
+clientSocket = iniciaConexao()
 
-    print("\n\nDeseja baixar o arquivo '%s'?" %nomeArquivoEscolhido)
+def chamaServidor(solicitacao, clientSocket):
+    clientSocket.send(solicitacao.encode("utf-8"))
 
-    escolhaUsuario = pegaStringOp("\nS/N")
+def DownloadArquivo(nomeCliente, nomeArquivoSelecionado, clientSocket):
+    infos("Download de Arquivo", nomeCliente)
 
-    if escolhaUsuario == "S":
-        clientSocket.send(escolhaUsuario.encode("utf-8")) # ENVIA "S" OU "N"
+    print("\nDeseja baixar o arquivo '%s'?" %nomeArquivoSelecionado)
 
-        arquivoRequisitado = open("./Storage/Downloads/" + nomeArquivoEscolhido, "wb")
+    opUser = pegaStringOp("\nS/N")
+
+    if opUser == "S":
+        clientSocket.send(opUser.encode("utf-8")) # ENVIA "S" OU "N"
+
+        arquivoRequisitado = open("./Storage/Downloads/" + nomeArquivoSelecionado, "wb")
 
         bytesRecebidos = clientSocket.recv(1024)
         while bytesRecebidos:
@@ -136,29 +133,23 @@ def DownloadArquivo(nomeCliente, nomeArquivoEscolhido, clientSocket):
             bytesRecebidos = clientSocket.recv(1024)
         arquivoRequisitado.close()
 
-        input("\nDownload completo! Vá a pasta Downloads.\n" +
-              "Tecle Enter para voltar.")
+        input("\nDownload completo! Arquivo(s) baixado na pasta Downloads.\n" +
+              "Tecle Enter")
     else: print("Cancelou download")
 
-def CriarConta(clientSocket):
-    CabecalhoUI("Criar Conta")
-    #clientSocket = fazerConexao()
+def criarConta(clientSocket):
+    infos("Criar Conta")
+    #clientSocket = iniciaConexao()
 
-    print("\n\n► Para criar uma conta, informe seus dados abaixo.")
+    print("\nDigite seus dados: ")
 
     while True:
-        nomeUsuario = pegaString("Digite um nome de usuário:")
-
+        nomeUser = pegaString("Digite um nome de usuário:")
         while True:
-            senhaUsuario = pegaString("Crie uma senha:")
-            confirmacaoSenha = pegaString("Digite a mesma senha para confirmá-la:")
-
-            if senhaUsuario != confirmacaoSenha:
-                print("\nAs senhas digitadas são distintas. Tente cadastrá-la novamente.")
-
+            senhaUser = pegaString("Crie uma senha:")
             else: break
 
-        dictDadosAutenticacao = {nomeUsuario: senhaUsuario}
+        dictDadosAutenticacao = {nomeUser: senhaUser}
 
         # ENVIA DICIONARIO PARA SERVIDOR:
         dictDAJson = json.dumps(dictDadosAutenticacao)
@@ -177,79 +168,76 @@ def CriarConta(clientSocket):
     # APENAS DEPOIS DE TER SAIDO DO LOOP, RECEBE INFORMAÇÃO SE O CADASTRO FOI FEITO OU NAO:
     statusCadastro = clientSocket.recv(1024).decode("utf-8")
     if statusCadastro == "SUCESSO":
-        input("\n\nConta cadastrada com sucesso! Tecle 'enter' para acessar a tela de login.")
+        input("\nConta cadastrada com sucesso! Tecle 'enter' para acessar a tela de login.")
 
-        ChamarServidor("AcessarConta()", clientSocket)
+        chamaServidor("AcessarConta()", clientSocket)
         AcessarConta(clientSocket)
 
     elif statusCadastro == "ERRO":
-        print("\n\nErro de cadastro. Reinicialize o programa.")
+        print("\nErro de cadastro. Reinicialize o programa.")
     # OK.
 
 def AcessarConta(clientSocket):
-    CabecalhoUI("Acessar Conta")
-    #clientSocket = fazerConexao()
+    infos("Acessar Conta")
+    #clientSocket = iniciaConexao()
 
-    print("\n\nDados da conta: ")
+    print("\nDados da conta: ")
 
     while True:
-        nomeUsuario = pegaString("Usuário:")
-        senhaUsuario = pegaString("Senha:")
+        nomeUser = pegaString("Usuário:")
+        senhaUser = pegaString("Senha:")
 
-        dictDadosAutenticacao = {nomeUsuario: senhaUsuario}
+        dictDadosAutenticacao = {nomeUser: senhaUser}
 
-        # ENVIA DICIONARIO PARA SERVIDOR:
         dictDAJson = json.dumps(dictDadosAutenticacao)
         clientSocket.send(dictDAJson.encode("utf-8"))
-        # ENVIADO - OK.
 
-        # RECEBE INFORMAÇAO SE DADOS DO LOGIN ESTÃO CORRETOS OU NÃO:
+        # dados corretos ou incorretos:
         statusLogin = clientSocket.recv(1024).decode("utf-8")
-        # OK.
 
         if statusLogin == "FALHA":
-            print("\n\nUsuário ou senha incorretos. Digite novamente.\n")
+            print("\nUsuário ou senha incorretos. Digite novamente.\n")
 
         elif statusLogin == "LOGADO": break
 
-    MenuPrincipal(nomeUsuario, clientSocket)
+    menuOpLogado(nomeUser, clientSocket)
 
-def EnumerarLista(lista, textoIntroducao, textoComando):
-    print("\n\n► " + textoIntroducao + "\n")
+def organizaList(lista, intro, inputComando):
+    print("\n" + intro + "\n")
 
     for x in range(len(lista)):
         print(str(x + 1) + ") " + lista[x])
 
-    numeroEscolhido = LerInteiro("\n" + textoComando, 1, len(lista))
+    numeroEscolhido = pegaInteiro("\n" + inputComando, 1, len(lista))
     numeroPosicaoLista = (numeroEscolhido - 1)
     nomeConteudoEscolhido = lista[numeroPosicaoLista]
 
 
     return nomeConteudoEscolhido, numeroPosicaoLista
 
-def ExploradorDiretorio(diretorio):
-    listaConteudoDir = (os.listdir("./" + diretorio))
+def verArquivosPasta(diretorio):
+    listarArquivosPasta = (os.listdir("./" + diretorio))
 
-    print("\n► Explorando o conteúdo do diretório local '%s'.\n" %diretorio.upper())
+    print("\nVendo conteúdo do diretório '%s'.\n" %diretorio.upper())
 
-    for x in range(len(listaConteudoDir)):
-        print(str(x + 1) + ") " + listaConteudoDir[x])
+    for x in range(len(listarArquivosPasta)):
+        print(str(x + 1) + ") " + listarArquivosPasta[x])
 
-    return listaConteudoDir
+    return listarArquivosPasta
 
 def UploadArquivo(nomeCliente, nomeDiretorio, nomePastaDestino, clientSocket):
-    CabecalhoUI("Upload de Arquivo", nomeCliente)
+    infos("Upload de Arquivo", nomeCliente)
 
-    listaConteudoDir = ExploradorDiretorio("Storage") # Explora o root, inicialmente.
-    historicoAcessoPasta = ""
+    listarArquivosPasta = verArquivosPasta("Storage")
+    historicoAcess = ""
 
     while True:
-        escolhaUsuario = LerInteiro("\nSelecione a pasta ou o arquivo pelo seu respectivo número:", 1, len(listaConteudoDir))
-        nomeConteudoEscolhido = listaConteudoDir[escolhaUsuario - 1]
+        opUser = pegaInteiro("\nSelecione documento pelo seu número:", 1, len(listarArquivosPasta))
+        nomeConteudoEscolhido = listarArquivosPasta[opUser - 1]
 
-        if os.path.isdir("./Storage/" + historicoAcessoPasta + nomeConteudoEscolhido) == True:
-            listaConteudoDir = ExploradorDiretorio("Storage/" + historicoAcessoPasta + nomeConteudoEscolhido)
-            historicoAcessoPasta += (nomeConteudoEscolhido + "/")
+        if os.path.isdir("./Storage/" + historicoAcess + nomeConteudoEscolhido) == True:
+            listarArquivosPasta = verArquivosPasta("Storage/" + historicoAcess + nomeConteudoEscolhido)
+            historicoAcess += (nomeConteudoEscolhido + "/")
 
         else:
             input("\nDeseja fazer o upload do arquivo '%s' para a pasta '%s'?" %(nomeConteudoEscolhido, nomePastaDestino))
@@ -260,7 +248,7 @@ def UploadArquivo(nomeCliente, nomeDiretorio, nomePastaDestino, clientSocket):
     time.sleep(1)
     clientSocket.send(nomeConteudoEscolhido.encode("utf-8"))
 
-    arquivoEnvio = open("./Storage/" + historicoAcessoPasta + nomeConteudoEscolhido, "rb")
+    arquivoEnvio = open("./Storage/" + historicoAcess + nomeConteudoEscolhido, "rb")
 
     arquivoPronto = arquivoEnvio.read(1024)
     while arquivoPronto:
@@ -272,36 +260,36 @@ def UploadArquivo(nomeCliente, nomeDiretorio, nomePastaDestino, clientSocket):
 
     input("\nUpload do arquivo '%s' feito com sucesso! Pressione 'enter' para retornar ao Menu Principal." %nomeConteudoEscolhido)
 
-    #MenuPrincipal(nomeCliente)
+    #menuOpLogado(nomeCliente)
 
-def CompartilharConteudo(nomeUsuario, nomeDiretorioRespectivo, nomeConteudoEscolhido, clientSocket):
-    CabecalhoUI("Compartilhar Conteúdo", nomeUsuario)
+def compartilharArquivo(nomeUser, nomeDiretorioRespectivo, nomeConteudoEscolhido, clientSocket):
+    infos("Compartilhar Conteúdo", nomeUser)
 
     nomeDiretorioRespectivo += "/"
 
     # RECEBE LISTA DE USUÁRIOS CADASTRADOS E REMOVE DESTA LISTA O NOME DO USUÁRIO LOGADO
     listaUsuariosCadastrados_JS = clientSocket.recv(1024).decode("utf-8")
     listaUsuariosCadastrados = json.loads(listaUsuariosCadastrados_JS)
-    listaUsuariosCadastrados.remove(nomeUsuario)
+    listaUsuariosCadastrados.remove(nomeUser)
     # OK.
 
-    nomeUsuarioACompartilhar, numeroPosicaoLista = EnumerarLista(listaUsuariosCadastrados,
+    nomeUserACompartilhar, numeroPosicaoLista = organizaList(listaUsuariosCadastrados,
                                            "Com qual usuário você gostaria de compartilhar o conteúdo '%s'?" %nomeConteudoEscolhido,
                                            "Selecione o nome do usuário pelo seu número correspondente:")
 
     dadosCompartilhamento = []
-    dadosCompartilhamento.append(nomeUsuarioACompartilhar)
+    dadosCompartilhamento.append(nomeUserACompartilhar)
     dadosCompartilhamento.append(nomeConteudoEscolhido)
     dadosCompartilhamento.append(nomeDiretorioRespectivo)
 
     dadosCompartilhamento_JS = json.dumps(dadosCompartilhamento)
     clientSocket.send(dadosCompartilhamento_JS.encode("utf-8"))
 
-    input("\nConteúdo '%s' foi compartilhado com sucesso com o usuário %s! " %(nomeConteudoEscolhido, nomeUsuarioACompartilhar) +
-          "Tecle 'enter' para voltar ao Meu Drive.")
+    input("\nConteúdo '%s' compartilhado com sucesso! " %(nomeConteudoEscolhido) +
+          "Aperte Enter")
 
-def CriarPasta(nomeUsuario, nomeDiretorio, nomeConteudoEscolhido, clientSocket):
-    CabecalhoUI("Criar Pasta", nomeUsuario)
+def criarPasta(nomeUser, nomeDiretorio, nomeConteudoEscolhido, clientSocket):
+    infos("Criar Pasta", nomeUser)
 
     nomeNovaPasta = pegaString("► Digite o nome da nova pasta que deseja criar em '%s'." %nomeConteudoEscolhido)
     print(nomeDiretorio)
@@ -312,82 +300,82 @@ def CriarPasta(nomeUsuario, nomeDiretorio, nomeConteudoEscolhido, clientSocket):
     time.sleep(0.3)
     clientSocket.send(nomeNovaPasta.encode("utf-8"))
 
-    input("\nPasta '%s' criada com sucesso! Pressione 'enter' para voltar ao Meu Drive." %nomeNovaPasta)
+    input("\nPasta '%s' criada com sucesso! Tecle Enter" %nomeNovaPasta)
 
-def TratamentoConteudo(nomeUsuario, tipoConteudo, nomeDiretorio, nomeConteudoEscolhido, clientSocket):
+def conteudoOp(nomeUser, tipoConteudo, nomeDiretorio, nomeConteudoEscolhido, clientSocket):
     if tipoConteudo == "PASTA":
-        print("\n\nO que você vai fazer com a pasta '%s'?\n\n" %nomeConteudoEscolhido +
+        print("\nO que você vai fazer com a pasta '%s'?\n" %nomeConteudoEscolhido +
              "1) Visualizar\n" +
              "2) Mandar arquivo\n" +
              "3) Criar pasta\n" +
              "4) Compartilhar")
 
-        escolhaUsuario = LerInteiro("\nDigite o número referente à sua opção:", 1, 4)
-        clientSocket.send(str(escolhaUsuario).encode("utf-8"))
+        opUser = pegaInteiro("\nDigite o número referente à sua opção:", 1, 4)
+        clientSocket.send(str(opUser).encode("utf-8"))
 
-        if escolhaUsuario == 1:
+        if opUser == 1:
             pass
 
-        elif escolhaUsuario == 2:
-            UploadArquivo(nomeUsuario, nomeDiretorio, nomeConteudoEscolhido, clientSocket)
-            ChamarServidor("meusArquivos()", clientSocket)
-            meusArquivos(nomeUsuario, clientSocket)
+        elif opUser == 2:
+            UploadArquivo(nomeUser, nomeDiretorio, nomeConteudoEscolhido, clientSocket)
+            chamaServidor("meusArquivos()", clientSocket)
+            meusArquivos(nomeUser, clientSocket)
 
-        elif escolhaUsuario == 3:
-            CriarPasta(nomeUsuario, nomeDiretorio, nomeConteudoEscolhido, clientSocket)
-            ChamarServidor("meusArquivos()", clientSocket)
-            meusArquivos(nomeUsuario, clientSocket)
+        elif opUser == 3:
+            criarPasta(nomeUser, nomeDiretorio, nomeConteudoEscolhido, clientSocket)
+            chamaServidor("meusArquivos()", clientSocket)
+            meusArquivos(nomeUser, clientSocket)
 
-        elif escolhaUsuario == 4:
-            CompartilharConteudo(nomeUsuario, nomeDiretorio, nomeConteudoEscolhido, clientSocket)
-            ChamarServidor("meusArquivos()", clientSocket)
-            meusArquivos(nomeUsuario, clientSocket)
+        elif opUser == 4:
+            compartilharArquivo(nomeUser, nomeDiretorio, nomeConteudoEscolhido, clientSocket)
+            chamaServidor("meusArquivos()", clientSocket)
+            meusArquivos(nomeUser, clientSocket)
 
     elif tipoConteudo == "ARQUIVO":
-        print("\n\nO que você vai fazer com o arquivo '%s'?\n\n" %nomeConteudoEscolhido +
+        print("\nO que você vai fazer com o arquivo '%s'?\n" %nomeConteudoEscolhido +
               "1) Baixar/Download\n" +
               "2) Compartilhar")
 
-        escolhaUsuario = LerInteiro("\nDigite o número da sua opção:", 1, 2)
-        clientSocket.send(str(escolhaUsuario).encode("utf-8"))
+        opUser = pegaInteiro("\nDigite o número da sua opção:", 1, 2)
+        clientSocket.send(str(opUser).encode("utf-8"))
 
-        if escolhaUsuario == 1:
-            DownloadArquivo(nomeUsuario, nomeConteudoEscolhido, clientSocket)
-            ChamarServidor("meusArquivos()", clientSocket)
-            meusArquivos(nomeUsuario, clientSocket)
+        if opUser == 1:
+            DownloadArquivo(nomeUser, nomeConteudoEscolhido, clientSocket)
+            chamaServidor("meusArquivos()", clientSocket)
+            meusArquivos(nomeUser, clientSocket)
 
-        if escolhaUsuario == 2:
-            CompartilharConteudo(nomeUsuario, nomeDiretorio, nomeConteudoEscolhido, clientSocket)
-            ChamarServidor("meusArquivos()", clientSocket)
-            meusArquivos(nomeUsuario, clientSocket)
+        if opUser == 2:
+            compartilharArquivo(nomeUser, nomeDiretorio, nomeConteudoEscolhido, clientSocket)
+            chamaServidor("meusArquivos()", clientSocket)
+            meusArquivos(nomeUser, clientSocket)
 
-def meusArquivos(nomeUsuario, clientSocket):
+def meusArquivos(nomeUser, clientSocket):
 
-    CabecalhoUI("Meu Drive", nomeUsuario)
-    #clientSocket = fazerConexao()
+    infos("Meus Arquivos", nomeUser)
+    #clientSocket = iniciaConexao()
 
-    clientSocket.send(nomeUsuario.encode("utf-8"))
+    clientSocket.send(nomeUser.encode("utf-8"))
 
     while True:
         nomeDiretorio = clientSocket.recv(1024).decode("utf-8")
-        listaConteudoDir_JS = clientSocket.recv(1024).decode("utf-8")
-        listaConteudoDir = json.loads(listaConteudoDir_JS)
+        listarArquivosPasta_JS = clientSocket.recv(1024).decode("utf-8")
+        listarArquivosPasta = json.loads(listarArquivosPasta_JS)
 
-        nomeConteudoEscolhido, numeroPosicaoLista = EnumerarLista(listaConteudoDir,
+        nomeConteudoEscolhido, numeroPosicaoLista = organizaList(listarArquivosPasta,
                                                                   "Explorando o seu diretório online '%s':" %nomeDiretorio.upper(),
                                                                   "Selecione o conteúdo pelo seu respectivo número:")
 
         clientSocket.send(nomeConteudoEscolhido.encode("utf-8"))
         tipoConteudo = clientSocket.recv(1024).decode("utf-8")
 
-        TratamentoConteudo(nomeUsuario, tipoConteudo, nomeDiretorio, nomeConteudoEscolhido, clientSocket)
+        conteudoOp(nomeUser, tipoConteudo, nomeDiretorio, nomeConteudoEscolhido, clientSocket)
 
-def compartilhadosComUsuario(nomeUsuario, clientSocket):
+def compartilhadosComUsuario(nomeUser, clientSocket):
 
-    CabecalhoUI("Compartilhados Comigo", nomeUsuario)
-    #clientSocket = fazerConexao()
+    infos("Compartilhados Comigo", nomeUser)
+    #clientSocket = iniciaConexao()
 
-    clientSocket.send(nomeUsuario.encode("utf-8"))
+    clientSocket.send(nomeUser.encode("utf-8"))
 
     dadosCompartIndividual_JS = clientSocket.recv(1024).decode("utf-8")
     dadosCompartIndividual = json.loads(dadosCompartIndividual_JS)
@@ -396,7 +384,7 @@ def compartilhadosComUsuario(nomeUsuario, clientSocket):
     caminhoReferenteAoConteudo = dadosCompartIndividual[1]
     #nomeProprietario = caminhoReferenteAoConteudo[0].split("/")[0]
 
-    nomeConteudoEscolhido, numeroPosicaoLista = EnumerarLista(listaConteudoCompartilhado,
+    nomeConteudoEscolhido, numeroPosicaoLista = organizaList(listaConteudoCompartilhado,
                                                               "Conteúdo(s) compartilhado(s) com você:",
                                                               "Selecione o conteúdo pelo seu respectivo número:")
 
@@ -408,20 +396,20 @@ def compartilhadosComUsuario(nomeUsuario, clientSocket):
     if tipoConteudo == "ARQUIVO":
         nomeDiretorio = caminhoReferenteAoConteudo[numeroPosicaoLista]
 
-        TratamentoConteudo(nomeUsuario, tipoConteudo, nomeDiretorio, nomeConteudoEscolhido, clientSocket)
+        conteudoOp(nomeUser, tipoConteudo, nomeDiretorio, nomeConteudoEscolhido, clientSocket)
     else:
         while True:
             nomeDiretorio = clientSocket.recv(1024).decode("utf-8") + "/"
-            listaConteudoDir_JS = clientSocket.recv(1024).decode("utf-8")
-            listaConteudoDir = json.loads(listaConteudoDir_JS)
+            listarArquivosPasta_JS = clientSocket.recv(1024).decode("utf-8")
+            listarArquivosPasta = json.loads(listarArquivosPasta_JS)
 
-            nomeConteudoEscolhido, numeroPosicaoLista = EnumerarLista(listaConteudoDir,
+            nomeConteudoEscolhido, numeroPosicaoLista = organizaList(listarArquivosPasta,
                                                                           "Explorando o diretório online compartilhado com você:",
                                                                           "Selecione o conteúdo pelo seu respectivo número:")
 
             clientSocket.send(nomeConteudoEscolhido.encode("utf-8"))
             tipoConteudo = clientSocket.recv(1024).decode("utf-8")
 
-            TratamentoConteudo(nomeUsuario, tipoConteudo, nomeDiretorio, nomeConteudoEscolhido, clientSocket)
+            conteudoOp(nomeUser, tipoConteudo, nomeDiretorio, nomeConteudoEscolhido, clientSocket)
 
 menuOp(clientSocket)
